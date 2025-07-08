@@ -1,0 +1,292 @@
+{% extends 'blog/base.html' %}
+{% load static %}
+
+{% block title %}{% if query %}Search: {{ query }}{% else %}Search{% endif %}{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <div class="row">
+        <!-- Main Content -->
+        <div class="col-lg-8">
+            <!-- Search Header -->
+            <div class="mb-4">
+                <h1 class="h2 mb-3">
+                    <i class="bi bi-search me-2"></i>
+                    {% if query %}
+                        Search Results for "{{ query }}"
+                    {% else %}
+                        Search Posts
+                    {% endif %}
+                </h1>
+                
+                {% if query %}
+                <p class="text-muted">
+                    Found {{ total_results }} result{{ total_results|pluralize }} for your search.
+                </p>
+                {% endif %}
+            </div>
+
+            <!-- Search Form -->
+            <div class="card mb-4 border-0 shadow-sm">
+                <div class="card-body">
+                    <form method="GET" action="{% url 'blog:search' %}" class="d-flex gap-2">
+                        <input type="text" name="q" class="form-control" 
+                               placeholder="Search for posts, topics, or keywords..." 
+                               value="{{ query }}" autofocus>
+                        <button type="submit" class="btn btn-primary">
+                            <i class="bi bi-search me-1"></i>Search
+                        </button>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Search Results -->
+            {% if query %}
+                {% if posts %}
+                    <div class="search-results">
+                        {% for post in posts %}
+                        <article class="card mb-4 border-0 shadow-sm">
+                            <div class="card-body">
+                                <!-- Post Meta -->
+                                <div class="d-flex align-items-center mb-2">
+                                    {% if post.is_featured %}
+                                    <span class="badge bg-warning text-dark me-2">
+                                        <i class="bi bi-star-fill me-1"></i>Featured
+                                    </span>
+                                    {% endif %}
+                                    {% if post.category %}
+                                    <span class="badge bg-primary me-2">{{ post.category.name }}</span>
+                                    {% endif %}
+                                    <small class="text-muted">
+                                        <i class="bi bi-calendar me-1"></i>
+                                        {{ post.published_at|date:"M d, Y" }}
+                                    </small>
+                                </div>
+
+                                <!-- Post Title -->
+                                <h3 class="h4 mb-3">
+                                    <a href="{% url 'blog:post_detail' post.slug %}" class="text-decoration-none">
+                                        {{ post.title }}
+                                    </a>
+                                </h3>
+
+                                <!-- Post Excerpt -->
+                                <p class="text-muted mb-3">
+                                    {{ post.excerpt|truncatewords:25 }}
+                                </p>
+
+                                <!-- Post Tags -->
+                                {% if post.tags %}
+                                <div class="mb-3">
+                                    {% for tag in post.tags %}
+                                    <a href="{% url 'blog:posts_by_tag' tag.slug %}" 
+                                       class="badge bg-light text-dark text-decoration-none me-1">
+                                        #{{ tag.name }}
+                                    </a>
+                                    {% endfor %}
+                                </div>
+                                {% endif %}
+
+                                <!-- Post Footer -->
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <div class="d-flex align-items-center">
+                                        <small class="text-muted me-3">
+                                            <i class="bi bi-person me-1"></i>
+                                            <a href="{% url 'blog:posts_by_author' post.author.username %}" 
+                                               class="text-decoration-none">
+                                                {{ post.author.full_name|default:post.author.username }}
+                                            </a>
+                                        </small>
+                                        <small class="text-muted me-3">
+                                            <i class="bi bi-eye me-1"></i>{{ post.view_count }}
+                                        </small>
+                                        <small class="text-muted">
+                                            <i class="bi bi-chat me-1"></i>{{ post.comment_count }}
+                                        </small>
+                                    </div>
+                                    <a href="{% url 'blog:post_detail' post.slug %}" 
+                                       class="btn btn-primary btn-sm">
+                                        <i class="bi bi-arrow-right me-1"></i>Read More
+                                    </a>
+                                </div>
+                            </div>
+                        </article>
+                        {% endfor %}
+                    </div>
+                {% else %}
+                    <!-- No Results -->
+                    <div class="text-center py-5">
+                        <i class="bi bi-search text-muted" style="font-size: 4rem;"></i>
+                        <h3 class="mt-3 text-muted">No results found</h3>
+                        <p class="text-muted mb-4">
+                            Sorry, we couldn't find any posts matching "{{ query }}". 
+                            Try searching with different keywords.
+                        </p>
+                        
+                        <!-- Search Suggestions -->
+                        <div class="card border-0 bg-light">
+                            <div class="card-body">
+                                <h5 class="card-title">Search Tips:</h5>
+                                <ul class="list-unstyled text-start">
+                                    <li><i class="bi bi-check text-success me-2"></i>Try different keywords</li>
+                                    <li><i class="bi bi-check text-success me-2"></i>Use shorter search terms</li>
+                                    <li><i class="bi bi-check text-success me-2"></i>Check spelling</li>
+                                    <li><i class="bi bi-check text-success me-2"></i>Browse by categories or tags</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                {% endif %}
+            {% else %}
+                <!-- No Search Query -->
+                <div class="text-center py-5">
+                    <i class="bi bi-search text-muted" style="font-size: 4rem;"></i>
+                    <h3 class="mt-3 text-muted">Start your search</h3>
+                    <p class="text-muted">
+                        Enter keywords in the search box above to find relevant posts.
+                    </p>
+                </div>
+            {% endif %}
+        </div>
+
+        <!-- Sidebar -->
+        <div class="col-lg-4">
+            <div class="sticky-top" style="top: 100px;">
+                <!-- Popular Searches -->
+                <div class="card mb-4 border-0 shadow-sm">
+                    <div class="card-header bg-primary text-white">
+                        <h5 class="mb-0">
+                            <i class="bi bi-fire me-2"></i>Popular Topics
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="d-flex flex-wrap gap-2">
+                            <a href="{% url 'blog:search' %}?q=django" class="badge bg-light text-dark text-decoration-none p-2">Django</a>
+                            <a href="{% url 'blog:search' %}?q=mongodb" class="badge bg-light text-dark text-decoration-none p-2">MongoDB</a>
+                            <a href="{% url 'blog:search' %}?q=python" class="badge bg-light text-dark text-decoration-none p-2">Python</a>
+                            <a href="{% url 'blog:search' %}?q=tutorial" class="badge bg-light text-dark text-decoration-none p-2">Tutorial</a>
+                            <a href="{% url 'blog:search' %}?q=web development" class="badge bg-light text-dark text-decoration-none p-2">Web Development</a>
+                            <a href="{% url 'blog:search' %}?q=api" class="badge bg-light text-dark text-decoration-none p-2">API</a>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Browse by Category -->
+                <div class="card mb-4 border-0 shadow-sm">
+                    <div class="card-header bg-success text-white">
+                        <h5 class="mb-0">
+                            <i class="bi bi-folder me-2"></i>Browse Categories
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="list-group list-group-flush">
+                            <a href="{% url 'blog:post_list' %}" class="list-group-item list-group-item-action border-0">
+                                <i class="bi bi-grid me-2"></i>All Posts
+                            </a>
+                            <!-- Add dynamic categories here if available -->
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Quick Links -->
+                <div class="card border-0 shadow-sm">
+                    <div class="card-header bg-info text-white">
+                        <h5 class="mb-0">
+                            <i class="bi bi-lightning me-2"></i>Quick Links
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="list-group list-group-flush">
+                            <a href="{% url 'blog:home' %}" class="list-group-item list-group-item-action border-0">
+                                <i class="bi bi-house me-2"></i>Homepage
+                            </a>
+                            <a href="{% url 'blog:post_list' %}" class="list-group-item list-group-item-action border-0">
+                                <i class="bi bi-journal-text me-2"></i>All Posts
+                            </a>
+                            <a href="{% url 'blog:dashboard' %}" class="list-group-item list-group-item-action border-0">
+                                <i class="bi bi-graph-up me-2"></i>Dashboard
+                            </a>
+                            <a href="{% url 'blog:api_posts' %}" class="list-group-item list-group-item-action border-0">
+                                <i class="bi bi-code-square me-2"></i>API
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// Highlight search terms in results
+document.addEventListener('DOMContentLoaded', function() {
+    const query = '{{ query|escapejs }}';
+    if (query) {
+        highlightSearchTerms(query);
+    }
+});
+
+function highlightSearchTerms(query) {
+    const searchResults = document.querySelector('.search-results');
+    if (!searchResults) return;
+    
+    const terms = query.toLowerCase().split(' ');
+    const walker = document.createTreeWalker(
+        searchResults,
+        NodeFilter.SHOW_TEXT,
+        null,
+        false
+    );
+    
+    const textNodes = [];
+    let node;
+    while (node = walker.nextNode()) {
+        textNodes.push(node);
+    }
+    
+    textNodes.forEach(textNode => {
+        const parent = textNode.parentNode;
+        if (parent.tagName === 'SCRIPT' || parent.tagName === 'STYLE') return;
+        
+        let text = textNode.textContent;
+        let highlightedText = text;
+        
+        terms.forEach(term => {
+            if (term.length > 2) {
+                const regex = new RegExp(`(${term})`, 'gi');
+                highlightedText = highlightedText.replace(regex, '<mark class="search-highlight">$1</mark>');
+            }
+        });
+        
+        if (highlightedText !== text) {
+            const span = document.createElement('span');
+            span.innerHTML = highlightedText;
+            parent.replaceChild(span, textNode);
+        }
+    });
+}
+
+// Search suggestions and auto-complete
+const searchInput = document.querySelector('input[name="q"]');
+if (searchInput) {
+    // Add keyboard shortcuts
+    searchInput.addEventListener('keydown', function(e) {
+        if (e.key === 'Escape') {
+            this.value = '';
+            this.blur();
+        }
+    });
+    
+    // Focus on search input with Ctrl/Cmd + K
+    document.addEventListener('keydown', function(e) {
+        if ((e.ctrlKey || e.metaKey) && e.key === 'k') {
+            e.preventDefault();
+            searchInput.focus();
+            searchInput.select();
+        }
+    });
+}
+</script>
+{% endblock %}

@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}{{ page_title }}{% if site_settings %} - {{ site_settings.site_name }}{% endif %}{% endblock %}</title>
+    
+    <!-- SEO Meta Tags -->
+    <meta name="description" content="{% block meta_description %}{% if site_settings %}{{ site_settings.site_description }}{% endif %}{% endblock %}">
+    <meta name="keywords" content="{% block meta_keywords %}blog, django, mongodb, python{% endblock %}">
+    <meta name="author" content="{% block meta_author %}{% if site_settings %}{{ site_settings.site_name }}{% endif %}{% endblock %}">
+    
+    <!-- Open Graph Meta Tags -->
+    <meta property="og:title" content="{% block og_title %}{{ page_title }}{% endblock %}">
+    <meta property="og:description" content="{% block og_description %}{% if site_settings %}{{ site_settings.site_description }}{% endif %}{% endblock %}">
+    <meta property="og:type" content="{% block og_type %}website{% endblock %}">
+    <meta property="og:url" content="{% block og_url %}{{ request.build_absolute_uri }}{% endblock %}">
+    
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Bootstrap Icons -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="{% load static %}{% static 'css/style.css' %}">
+    
+    {% block extra_css %}{% endblock %}
+</head>
+<body>
+    <!-- Navigation -->
+    <nav class="navbar navbar-expand-lg navbar-dark bg-primary sticky-top">
+        <div class="container">
+            <a class="navbar-brand fw-bold" href="{% url 'blog:home' %}">
+                <i class="bi bi-journal-code me-2"></i>
+                {% if site_settings %}{{ site_settings.site_name }}{% else %}MongoDB Blog{% endif %}
+            </a>
+            
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav me-auto">
+                    <li class="nav-item">
+                        <a class="nav-link {% if request.resolver_match.url_name == 'home' %}active{% endif %}" href="{% url 'blog:home' %}">
+                            <i class="bi bi-house me-1"></i>Home
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link {% if request.resolver_match.url_name == 'post_list' %}active{% endif %}" href="{% url 'blog:post_list' %}">
+                            <i class="bi bi-journal-text me-1"></i>All Posts
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link {% if request.resolver_match.url_name == 'dashboard' %}active{% endif %}" href="{% url 'blog:dashboard' %}">
+                            <i class="bi bi-graph-up me-1"></i>Dashboard
+                        </a>
+                    </li>
+                </ul>
+                
+                <!-- Search Form -->
+                <form class="d-flex me-3" method="GET" action="{% url 'blog:search' %}">
+                    <div class="input-group">
+                        <input class="form-control" type="search" name="q" placeholder="Search posts..." value="{{ request.GET.q }}">
+                        <button class="btn btn-outline-light" type="submit">
+                            <i class="bi bi-search"></i>
+                        </button>
+                    </div>
+                </form>
+                
+                <!-- User Menu -->
+                <ul class="navbar-nav">
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown">
+                            <i class="bi bi-person-circle me-1"></i>Menu
+                        </a>
+                        <ul class="dropdown-menu">
+                            <li><a class="dropdown-item" href="/admin/"><i class="bi bi-gear me-2"></i>Admin</a></li>
+                            <li><hr class="dropdown-divider"></li>
+                            <li><a class="dropdown-item" href="{% url 'blog:api_posts' %}"><i class="bi bi-code-square me-2"></i>API</a></li>
+                        </ul>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Messages -->
+    {% if messages %}
+        <div class="container mt-3">
+            {% for message in messages %}
+                <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+                    {{ message }}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                </div>
+            {% endfor %}
+        </div>
+    {% endif %}
+
+    <!-- Main Content -->
+    <main class="flex-grow-1">
+        {% block content %}{% endblock %}
+    </main>
+
+    <!-- Footer -->
+    <footer class="bg-dark text-light py-5 mt-5">
+        <div class="container">
+            <div class="row">
+                <div class="col-md-6">
+                    <h5>
+                        <i class="bi bi-journal-code me-2"></i>
+                        {% if site_settings %}{{ site_settings.site_name }}{% else %}MongoDB Blog{% endif %}
+                    </h5>
+                    <p class="text-muted">
+                        {% if site_settings and site_settings.site_description %}
+                            {{ site_settings.site_description }}
+                        {% else %}
+                            A modern blog built with Django 5.2 and MongoDB 6.x using MongoEngine.
+                        {% endif %}
+                    </p>
+                </div>
+                <div class="col-md-3">
+                    <h6>Quick Links</h6>
+                    <ul class="list-unstyled">
+                        <li><a href="{% url 'blog:home' %}" class="text-muted text-decoration-none">Home</a></li>
+                        <li><a href="{% url 'blog:post_list' %}" class="text-muted text-decoration-none">All Posts</a></li>
+                        <li><a href="{% url 'blog:dashboard' %}" class="text-muted text-decoration-none">Dashboard</a></li>
+                        <li><a href="/admin/" class="text-muted text-decoration-none">Admin</a></li>
+                    </ul>
+                </div>
+                <div class="col-md-3">
+                    <h6>Newsletter</h6>
+                    <form id="newsletter-form" class="mb-3">
+                        <div class="input-group">
+                            <input type="email" class="form-control" placeholder="Your email" name="email" required>
+                            <button class="btn btn-primary" type="submit">Subscribe</button>
+                        </div>
+                    </form>
+                    <div id="newsletter-message"></div>
+                </div>
+            </div>
+            <hr class="my-4">
+            <div class="row align-items-center">
+                <div class="col-md-6">
+                    <p class="mb-0 text-muted">
+                        &copy; {% now "Y" %} 
+                        {% if site_settings %}{{ site_settings.site_name }}{% else %}MongoDB Blog{% endif %}. 
+                        Built with Django & MongoDB.
+                    </p>
+                </div>
+                <div class="col-md-6 text-end">
+                    <small class="text-muted">
+                        <i class="bi bi-database me-1"></i>MongoDB
+                        <i class="bi bi-server ms-2 me-1"></i>Django 5.2
+                        <i class="bi bi-code-square ms-2 me-1"></i>Python 3.12
+                    </small>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    <!-- Custom JavaScript -->
+    <script src="{% load static %}{% static 'js/main.js' %}"></script>
+    
+    {% block extra_js %}{% endblock %}
+</body>
+</html>
